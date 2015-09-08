@@ -1,0 +1,6 @@
+[Unit]
+Description=Generate Varnish backend director for ELB
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/generate_backends

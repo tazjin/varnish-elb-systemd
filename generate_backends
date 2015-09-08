@@ -1,0 +1,87 @@
+#!/bin/bash
+set -ueo pipefail
+
+# Varnish does not support automatic resolving of DNS names and, more importantly,
+# updating resolutions after TTL expiry.
+# This script generates a Varnish configuration file with the targets of all A
+# records for the specified hostname added into a round-robin director.
+
+readonly TARGET_HOSTNAME="${1}"
+readonly DIRECTOR="${2}"
+readonly CONFIG_FILE="${3}"
+
+# VCL fragments & generation functions
+
+readonly VCL_HEADER=$(cat <<'EOF'
+vcl 4.0;
+import directors;
+EOF
+)
+
+readonly VCL_DIRECTOR_HEADER=$(cat <<EOF
+sub vcl_init {
+    new ${DIRECTOR} = directors.round_robin();
+EOF
+)
+
+# Output a single backend. Takes the backend number and IP address to point at.
+function vcl_backend() {
+    local num="${1}"
+    local address="${2}"
+
+    echo "backend elb${num} { .host = \"${address}\" }"
+}
+
+# Output a single statement to add a backend to the director. Takes the backend
+# number.
+function vcl_add_backend() {
+    local num="${1}"
+
+    echo "    ${DIRECTOR}.add_backend(elb${num});"
+}
+
+# Resolve a hostname to an array of IP addresses
+function get_records() {
+    # Fetch all records using dig, filter out IP addresses only
+    # Sorted to guarantee consistent result files.
+    dig +noall +answer A "${TARGET_HOSTNAME}" | \
+        grep -Po '(\d+\.?){4}$' | \
+        sort
+}
+
+# This function constructs the VCL file. It keeps track of the number of records
+# received from get_records, inserts a backend {} statement for each record and
+# eventually adds them to the defined director.
+function generate_vcl() {
+    declare -i n_records=0
+
+    echo "${VCL_HEADER}"
+
+    while read record; do
+        n_records=$(( n_records + 1 ))
+        vcl_backend "${n_records}" "${record}"
+    done < <(get_records)
+
+    echo "${VCL_DIRECTOR_HEADER}"
+    while [[ ${n_records} > 0 ]]; do
+        vcl_add_backend ${n_records}
+        n_records=$(( n_records - 1))
+    done
+
+    echo '}'
+}
+
+# Generates the new VCL into a temporary file, backs up existing and replaces it.
+# The file is only replaced if it has changed.
+function write_vcl() {
+    local tmp_file=$(mktemp "/tmp/$(basename -- $0).XXXXXX")
+
+    generate_vcl > "${tmp_file}"
+
+    if [[ $(md5sum < ${tmp_file}) != $(md5sum < ${CONFIG_FILE}) ]]; then
+        echo "Records changed, updating VCL file"
+        mv --backup "${tmp_file}" "${CONFIG_FILE}"
+    fi
+}
+
+write_vcl

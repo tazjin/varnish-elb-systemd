@@ -1,0 +1,11 @@
+[Unit]
+Description=Timer to generate Varnish backend director for ELB
+
+[Timer]
+# The TTL for ELB A records is 60 seconds, this timer will run
+# every 30 seconds and should cover potential updates well.
+OnActiveSec=15
+OnUnitActiveSec=30
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,7 @@
+[Unit]
+Requires=varnish.service
+Description=Simply reloads Varnish
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl reload varnish

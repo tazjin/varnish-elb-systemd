@@ -1,0 +1,7 @@
+[Unit]
+Requires=varnish.service
+Description=Reload Varnish if specified VCL is changed
+
+[Path]
+PathChanged=/etc/varnish/%i.vcl
+Unit=varnish-reload.service
