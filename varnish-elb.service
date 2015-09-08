@@ -3,5 +3,5 @@ Description=Generate Varnish backend director for ELB
 
 [Service]
 Type=oneshot
-EnvironmentFile=/etc/defaults/varnish-elb
+EnvironmentFile=/etc/default/varnish-elb
 ExecStart=/usr/local/bin/generate_backends ${TARGET_HOSTNAME} ${DIRECTOR}
