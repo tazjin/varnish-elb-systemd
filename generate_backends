@@ -29,7 +29,7 @@ function vcl_backend() {
     local num="${1}"
     local address="${2}"
 
-    echo "backend elb${num} { .host = \"${address}\" }"
+    echo "backend elb${num} { .host = \"${address}\"; }"
 }
 
 # Output a single statement to add a backend to the director. Takes the backend
@@ -77,6 +77,7 @@ function write_vcl() {
     local tmp_file=$(mktemp "/tmp/$(basename -- $0).XXXXXX")
     chown varnish: "${tmp_file}"
     chmod 0644 "${tmp_file}"
+    chcon -t varnishd_etc_t "${tmp_file}"
 
     generate_vcl > "${tmp_file}"
 
