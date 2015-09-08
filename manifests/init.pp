@@ -15,15 +15,24 @@ class varnish_elb($elb_hostname, $varnish_director) {
   # Copy over units
   varnish_elb::unit{ $varnish_elb_units: }
 
+  # Copy over VCL generation script
+  file { '/usr/local/bin/generate_backends':
+    ensure => present,
+    mode   => '0755',
+    source => 'puppet:///modules/varnish_elb/generate_backends',
+  }
   # Create configuration file
-  template { '/etc/default/varnish-elb':
+  file { '/etc/default/varnish-elb':
     ensure  => present,
     content => template('varnish-elb'),
   }
 
   # Enable and start services
   service { $varnish_elb_services:
-    ensure => running,
-    enable => true,
+    ensure  => running,
+    enable  => true,
+    require => [File['/usr/local/bin/generate_backends'],
+                File['/etc/default/varnish-elb'],
+                Varnish_elb::Unit[ $varnish_elb_units ]]
   }
 }
