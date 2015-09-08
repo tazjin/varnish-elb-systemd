@@ -47,10 +47,13 @@ TARGET_HOSTNAME=some-elb-instance.elb.amazonaws.com
 DIRECTOR=elb
 ```
 
-## Usage example
+## Puppet usage example
 
-* Place the script in `/usr/local/bin`
-* Place the units in `/usr/lib/systemd/system`
-* Place a configuration file in `/etc/defaults/varnish-elb`
-* Start the timer unit (`systemctl start varnish-elb.timer`)
-* Start the path unit (assuming director is `elb`: `systemctl start varnish-reload@elb.path`
+The Puppet module can be used as such:
+
+```puppet
+include { 'varnish_elb':
+    elb_hostname     => 'some-elb-instance.elb.amazonaws.com',
+    varnish_director => 'elb,'
+}
+```

@@ -3,7 +3,7 @@
 # Please note that this will not install Varnish, only the ELB configuration
 # bits.
 
-class varnish_elb($elb_hostname, $varnish_director = $title) {
+class varnish_elb($elb_hostname, $varnish_director) {
   # Units that need to be copied over
   $varnish_elb_units = ['varnish-elb.service', 'varnish-elb.timer',
                         'varnish-reload@.path', 'varnish-reload.service']
