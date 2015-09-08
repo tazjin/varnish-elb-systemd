@@ -1,0 +1,2 @@
+DIRECTOR="<%= @varnish_director %>"
+TARGET_HOSTNAME="<%= @elb_hostname %>"

@@ -1,0 +1,11 @@
+{
+  "name": "varnish-elb",
+  "version": "0.1.0",
+  "author": "Vincent Ambo <tazjin@gmail.com>",
+  "summary": "Allow Varnish to point at ELBs, CentOS/RedHat 7 only.",
+  "license": "Apache 2.0",
+  "source": "https://github.com/tazjin/varnish-elb",
+  "project_page": "https://github.com/tazjin/varnish-elb",
+  "issues_url": "https://github.com/tazjin/varnish-elb/issues",
+  "dependencies": []
+}
