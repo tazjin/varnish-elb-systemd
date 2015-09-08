@@ -8,10 +8,6 @@ class varnish_elb($elb_hostname, $varnish_director) {
   $varnish_elb_units = ['varnish-elb.service', 'varnish-elb.timer',
                         'varnish-reload@.path', 'varnish-reload.service']
 
-  # The services that need to be enabled and started
-  $varnish_elb_services = ['varnish-elb.timer',
-                           "varnish-reload@${varnish_director}"]
-
   # Copy over units
   varnish_elb::unit{ $varnish_elb_units: }
 
@@ -24,15 +20,23 @@ class varnish_elb($elb_hostname, $varnish_director) {
   # Create configuration file
   file { '/etc/default/varnish-elb':
     ensure  => present,
-    content => template('varnish-elb'),
+    content => template('varnish_elb/config.erb'),
   }
 
-  # Enable and start services
-  service { $varnish_elb_services:
+  # Enable and start VCL generation
+  service { 'varnish-elb.timer':
     ensure  => running,
     enable  => true,
     require => [File['/usr/local/bin/generate_backends'],
                 File['/etc/default/varnish-elb'],
                 Varnish_elb::Unit[ $varnish_elb_units ]]
+  }
+
+  # Start Varnish reloader, this can not be enabled because systemd does not
+  # support that functionality for template-units. However, Puppet should keep
+  # it running anyways.
+  service { "varnish-reload@${varnish_director}.path":
+    ensure  => running,
+    require => Varnish_elb::Unit[ $varnish_elb_units ],
   }
 }
