@@ -1,5 +1,5 @@
 {
-  "name": "varnish_elb",
+  "name": "varnish-elb",
   "version": "0.1.0",
   "author": "Vincent Ambo <tazjin@gmail.com>",
   "summary": "Allow Varnish to point at ELBs, CentOS/RedHat 7 only.",
