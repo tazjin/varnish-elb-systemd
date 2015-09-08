@@ -5,4 +5,6 @@ Description=Simply reloads Varnish
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/systemctl reload varnish
+# Old Varnish configuration needs to be discarded, otherwise outdated backends
+# will stick around.
 ExecStart=/bin/bash -c "varnishadm vcl.list | grep -v active | awk '{print $3}' | xargs varnishadm vcl.discard"
