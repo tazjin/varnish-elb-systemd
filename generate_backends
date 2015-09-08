@@ -7,8 +7,7 @@ set -ueo pipefail
 # records for the specified hostname added into a round-robin director.
 
 readonly TARGET_HOSTNAME="${1}"
-readonly DIRECTOR="${2}"
-readonly CONFIG_FILE="${3}"
+readonly CONFIG_FILE="/etc/varnish/${DIRECTOR}.vcl"
 
 # VCL fragments & generation functions
 
