@@ -75,6 +75,8 @@ function generate_vcl() {
 # The file is only replaced if it has changed.
 function write_vcl() {
     local tmp_file=$(mktemp "/tmp/$(basename -- $0).XXXXXX")
+    chown varnish: "${tmp_file}"
+    chmod 0644 "${tmp_file}"
 
     generate_vcl > "${tmp_file}"
 
