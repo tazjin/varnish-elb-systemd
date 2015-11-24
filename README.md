@@ -57,3 +57,7 @@ include { 'varnish_elb':
     varnish_director => 'elb,'
 }
 ```
+
+Additional options provided by the module are `elb_port`, `connect_timeout`,
+`first_byte_timeout` and `between_bytes_timeout`. These are all set to the
+Varnish default values.
