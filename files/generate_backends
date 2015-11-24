@@ -6,9 +6,17 @@ set -ueo pipefail
 # This script generates a Varnish configuration file with the targets of all A
 # records for the specified hostname added into a round-robin director.
 
-readonly TARGET_HOSTNAME="${1}"
-readonly DIRECTOR="${2}"
-readonly CONFIG_FILE="/etc/varnish/${DIRECTOR}.vcl"
+readonly TARGET_HOSTNAME="${TARGET_HOSTNAME}"
+readonly DIRECTOR="${DIRECTOR}"
+readonly CONFIG_PATH="${CONFIG_PATH:-/etc/varnish}"
+readonly CONFIG_FILE="${CONFIG_PATH}/${DIRECTOR}.vcl"
+
+# Backend settings in Varnish
+
+readonly BACKEND_PORT="${BACKEND_PORT:-80}"
+readonly CONNECT_TIMEOUT="${CONNECT_TIMEOUT:-3.5s}"
+readonly FIRST_BYTE_TIMEOUT="${FIRST_BYTE_TIMEOUT:-60s}"
+readonly BETWEEN_BYTES_TIMEOUT="${BETWEEN_BYTES_TIMEOUT:-60s}"
 
 # VCL fragments & generation functions
 
@@ -29,7 +37,15 @@ function vcl_backend() {
     local num="${1}"
     local address="${2}"
 
-    echo "backend elb${num} { .host = \"${address}\"; }"
+    cat <<EOF
+backend ${DIRECTOR}${num} {
+    .host = "${address}";
+    .port = "${BACKEND_PORT}";
+    .connect_timeout = ${CONNECT_TIMEOUT};
+    .first_byte_timeout = ${FIRST_BYTE_TIMEOUT};
+    .between_bytes_timeout = ${BETWEEN_BYTES_TIMEOUT};
+}
+EOF
 }
 
 # Output a single statement to add a backend to the director. Takes the backend
@@ -37,7 +53,7 @@ function vcl_backend() {
 function vcl_add_backend() {
     local num="${1}"
 
-    echo "    ${DIRECTOR}.add_backend(elb${num});"
+    echo "    ${DIRECTOR}.add_backend(${DIRECTOR}${num});"
 }
 
 # Resolve a hostname to an array of IP addresses
